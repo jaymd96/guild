@@ -1,0 +1,4 @@
+[plugin]
+name = "guild-skills"
+version = "0.1.0"
+description = "Skills for creating, managing, and maintaining Claude Code plugin marketplaces."

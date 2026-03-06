@@ -3,6 +3,7 @@
 from guild.__about__ import __version__
 from guild._build import build_and_write, build_marketplace, build_readme
 from guild._config import discover_local_plugins, load_guild_config, load_plugin_meta
+from guild._install import install_plugin
 from guild._models import (
     ExternalSource,
     GuildConfig,
@@ -26,6 +27,7 @@ __all__ = [
     "build_readme",
     "discover_local_plugins",
     "init_marketplace",
+    "install_plugin",
     "load_guild_config",
     "load_plugin_meta",
     "remove_plugin",

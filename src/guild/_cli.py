@@ -9,6 +9,7 @@ from pathlib import Path
 
 from guild._build import build_and_write
 from guild._config import discover_local_plugins, is_kebab_case, load_guild_config
+from guild._install import install_plugin
 from guild._scaffold import add_plugin, init_marketplace, remove_plugin
 from guild._validate import validate
 
@@ -53,6 +54,18 @@ def main(argv: list[str] | None = None) -> int:
     p_ver.add_argument("plugin_name", help="Plugin name.")
     p_ver.add_argument("new_version", help="New version string.")
 
+    # -- setup-plugin --
+    p_setup = sub.add_parser(
+        "setup-plugin",
+        help="Install guild's own skills plugin into a directory.",
+    )
+    p_setup.add_argument(
+        "target",
+        nargs="?",
+        default=None,
+        help="Target directory (default: plugins/ in current marketplace, or .claude/plugins/).",
+    )
+
     args = parser.parse_args(argv)
 
     if args.version:
@@ -79,6 +92,8 @@ def main(argv: list[str] | None = None) -> int:
         return _cmd_list()
     if args.command == "version":
         return _cmd_version(args)
+    if args.command == "setup-plugin":
+        return _cmd_setup_plugin(args)
 
     parser.print_help()
     return 1
@@ -259,12 +274,35 @@ def _cmd_version(args: argparse.Namespace) -> int:
     return 0
 
 
+def _cmd_setup_plugin(args: argparse.Namespace) -> int:
+    if args.target is not None:
+        target = Path(args.target).resolve()
+    else:
+        # Prefer plugins/ in current marketplace, fall back to .claude/plugins/
+        workspace = _find_workspace(quiet=True)
+        if workspace is not None:
+            target = workspace / "plugins"
+        else:
+            target = Path.cwd().resolve() / ".claude" / "plugins"
+
+    target.mkdir(parents=True, exist_ok=True)
+
+    try:
+        dest = install_plugin(target)
+    except Exception as exc:
+        print(f"Error: {exc}", file=sys.stderr)
+        return 1
+
+    print(f"Installed guild-skills plugin at {dest}")
+    return 0
+
+
 # ------------------------------------------------------------------
 # Helpers
 # ------------------------------------------------------------------
 
 
-def _find_workspace() -> Path | None:
+def _find_workspace(*, quiet: bool = False) -> Path | None:
     """Walk up from cwd to find a directory containing ``guild.toml``."""
     current = Path.cwd().resolve()
     while True:
@@ -275,5 +313,6 @@ def _find_workspace() -> Path | None:
             break
         current = parent
 
-    print("Error: guild.toml not found (searched from cwd upward).", file=sys.stderr)
+    if not quiet:
+        print("Error: guild.toml not found (searched from cwd upward).", file=sys.stderr)
     return None
