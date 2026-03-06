@@ -1,0 +1,5 @@
+[marketplace]
+name = "guild-marketplace"
+owner = "jaymd96"
+owner_email = "jaymd96@users.noreply.github.com"
+description = "Skills for building and managing Claude Code plugin marketplaces with guild."
